@@ -5,8 +5,8 @@
  LCALL sendCharacter
     MOV A, #' '
 
-    HORA_ALARME   equ     01   
-    MINUTO_ALARME equ     12  
+    HORA_ALARME   equ     00   
+    MINUTO_ALARME equ     53  
 
 org 0000h
     LJMP START
@@ -77,6 +77,10 @@ EXIBIR_HORA:
 alarme_ativado:
     
     LCALL clearDisplay
+	 LCALL sendCharacter
+    MOV A, #' '
+	 LCALL sendCharacter
+    MOV A, #' '
     LCALL sendCharacter
     MOV A, #' '
     LCALL sendCharacter
@@ -87,6 +91,10 @@ alarme_ativado:
     MOV A, #' '
     LCALL sendCharacter
     MOV A, #' '
+    LCALL sendCharacter
+	  MOV A, #' '
+    LCALL sendCharacter
+	  MOV A, #' '
     LCALL sendCharacter
     MOV A, #'T'
     LCALL sendCharacter
@@ -103,20 +111,17 @@ alarme_ativado:
     MOV A, #'O'
     LCALL sendCharacter
 
-    ; Ligar o LED para sinalizar o alarme
-    SETB LED                   ; Aciona LED do alarme
-    
-    ; Espera 1 minuto usando o Timer 0
-    MOV TH0, #3Ch
-    MOV TL0, #0B0h
-    SETB TR0                   ; Inicia o Timer
-    WAIT_1MIN:
-    JNB TF0, WAIT_1MIN         ; Espera até que o Timer alcance 1 minuto
-    CLR TF0                    ; Limpa o flag do Timer
-    CLR TR0                    ; Para o Timer
+   
+    SETB LED                  
+  		MOV R7, #20            
+    DELAY_20SEC:
+        MOV R6, #20       
+        DELAY_LOOP:
+            LCALL delay    
+            DJNZ R6, DELAY_LOOP
+        DJNZ R7, DELAY_20SEC
+		               
 
-    ; Desativa o LED e limpa a mensagem de alarme
-    CLR LED
     LCALL clearDisplay
     RET
 
