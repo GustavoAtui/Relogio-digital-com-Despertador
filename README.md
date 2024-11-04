@@ -19,5 +19,9 @@ Projeto em Assembly executado no Edsim51. O projeto consiste em fazer um Relógi
 ##### Quando chega no horário definido para tocar, Exibe a mensagem "TOCANDO" e o Led acende verde:
 ![Quando chega no horário definido para tocar, Exibe a mensagem "TOCANDO" e o Led acende verde.](https://github.com/user-attachments/assets/2620c10c-665c-4d47-a2c4-202cf91a1402)
 
+##### Vídeo demonstrando o funcionamento do botão que desliga o despertador, o botão escolhido foi o asterisco ou "*":
+https://github.com/GustavoAtui/Relogio-digital-com-Despertador/issues/1#issue-2634051449
+
+
 
 
