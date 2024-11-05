@@ -1,101 +1,96 @@
 ; --- Mapeamento de Hardware (8051) ---
-    RS      equ     P1.3    ;Reg Select ligado em P1.3
-    EN      equ     P1.2    ;Enable ligado em P1.2
-    LED     equ     P1.0    ;LED ligado em P1.0 para sinalizar alarme
- LCALL sendCharacter
-    MOV A, #' '
+    RS      equ     P1.3         ; Registro Select do LCD ligado em P1.3
+    EN      equ     P1.2         ; Enable do LCD ligado em P1.2
+    LED     equ     P1.0         ; LED de alarme ligado em P1.0
 
-    HORA_ALARME   equ     00   
-    MINUTO_ALARME equ     53  
+    LCALL sendCharacter		 ; Chama a sub-rotina para enviar um caractere ao LCD
+    MOV A, #' '			 ; Move um caractere espaço para o acumulador
+
+    HORA_ALARME   equ     00  	 ; Define a hora 
+    MINUTO_ALARME equ     51  	 ; Define o minuto	
 
 org 0000h
-    LJMP START
+    LJMP START			 ; Salta para a rotina START ao iniciar
 
 org 0030h
 START:
-    MOV R5, #00	;Inicia Horas
-    MOV R3, #50  ; Inicia minutos
-    LCALL lcd_init           ; Inicializa o LCD
+    MOV R5, #00          	 ; Inicializa Horas
+    MOV R3, #50          	 ; Inicializa minutos
+    LCALL lcd_init       	 ; Inicializa o LCD
 
-   
-    MOV TMOD, #01h          
-    MOV TH0, #3Ch            
-    MOV TL0, #0B0h           
-    SETB TR0                
+    MOV TMOD, #01h		 ; Configura Timer 0 em modo 1
+    MOV TH0, #3Ch		 ; Carrega TH0 para gerar um atraso
+    MOV TL0, #0B0h		 ; Carrega TL0 para gerar um atraso
+    SETB TR0			 ; Inicia Timer 0
+
+    ; Configurações de interrupções para o botão de parada do alarme
+    SETB EA              ; Habilita interrupções globais
+    SETB EX0             ; Habilita interrupção externa 0 (INT0)
+    CLR IT0              ; Configura interrupção para nível baixo (acionada enquanto o botão é pressionado)
 
 LOOP:
     ; Verifica se é o horário do alarme
     MOV A, R5
-    CJNE A, #HORA_ALARME, CHECA_MINUTO
+    CJNE A, #HORA_ALARME, CHECA_MINUTO	  ; Verifica se a hora coincide com a do alarme
     MOV A, R3
-    CJNE A, #MINUTO_ALARME, EXIBIR_HORA
+    CJNE A, #MINUTO_ALARME, EXIBIR_HORA   ; Verifica se o minuto coincide com o do alarme
     
     ; Ativa o alarme se o horário coincidir
-    LCALL alarme_ativado
-   
+    LCALL alarme_ativado         ; Chama a rotina do alarme
 
 CHECA_MINUTO:
     ; Exibir valor de horas (R5) e minutos (R3) no LCD
 EXIBIR_HORA:
-    MOV A, #06h               
-    LCALL posicionaCursor      
+    MOV A, #06h			   ; Configura posição do cursor no LCD para horas
+    LCALL posicionaCursor
     MOV A, R5
     MOV B, #10
-    DIV AB                    
-    ADD A, #30h               
-    LCALL sendCharacter       
+    DIV AB			   ; Converte a hora em formato de dígito
+    ADD A, #30h
+    LCALL sendCharacter
     MOV A, B
-    ADD A, #30h               
-    LCALL sendCharacter       
-	
-    MOV A, #08h               
-    LCALL posicionaCursor      
+    ADD A, #30h
+    LCALL sendCharacter
+
+    MOV A, #08h			   ; Configura posição do cursor no LCD para minutos
+    LCALL posicionaCursor
     MOV A, R3
     MOV B, #10
-    DIV AB                    
-    ADD A, #30h               
-    LCALL sendCharacter       
+    DIV AB			   ; Converte o minuto em formato de dígito
+    ADD A, #30h
+    LCALL sendCharacter
     MOV A, B
-    ADD A, #30h               
-    LCALL sendCharacter       
+    ADD A, #30h
+    LCALL sendCharacter
 
-    JNB TF0, LOOP             
-    CLR TF0                   
-    MOV TH0, #3Ch             
+    JNB TF0, LOOP		   ; Se Timer não estourou, volta ao LOOP
+    CLR TF0			   ; Limpa flag de Timer
+    MOV TH0, #3Ch
     MOV TL0, #0B0h
-    INC R3                    ; Adiciona minutos
+    INC R3                         ; Incrementa minutos
 
-    CJNE R3, #60, LOOP
-    MOV R3, #00               ; Volta minutos para 00
-    INC R5                    ; Adiciona 1 hr
-    CJNE R5, #24, LOOP
-    MOV R5, #00               ; Volta para 00 horas 
+    CJNE R3, #60, LOOP		   ; Se minutos não chegaram a 60, continua no LOOP
+    MOV R3, #00              	   ; Zera os minutos
+    INC R5                   	   ; Soma +1 nas horas
+    CJNE R5, #24, LOOP 		   ; Se horas não chegaram a 24, continua no LOOP
+    MOV R5, #00              	   ; Zera as horas
 
-    JMP LOOP                  
-
+    JMP LOOP			   ; Continua no LOOP principal
 
 alarme_ativado:
-    
-    LCALL clearDisplay
-	 LCALL sendCharacter
-    MOV A, #' '
-	 LCALL sendCharacter
-    MOV A, #' '
+    LCALL clearDisplay             ; Limpa o display antes de exibir o alarme
+
+    ; Configura a posição inicial do cursor (mensagem alarme)
+    MOV A, #06h                    ; Posição inicial 
+    LCALL posicionaCursor
+
+    MOV R2, #10                    ; Define 10 espaços em branco para limpar a linha
+EXIBE_ESPACO:
+    MOV A, #' '                    ; Caractere de espaço
     LCALL sendCharacter
-    MOV A, #' '
-    LCALL sendCharacter
-    MOV A, #' '
-	  LCALL sendCharacter
-    MOV A, #' '
-    LCALL sendCharacter
-    MOV A, #' '
-    LCALL sendCharacter
-    MOV A, #' '
-    LCALL sendCharacter
-	  MOV A, #' '
-    LCALL sendCharacter
-	  MOV A, #' '
-    LCALL sendCharacter
+    DJNZ R2, EXIBE_ESPACO          ; Repete até que R2 chegue a zero
+
+    ; Exibe a mensagem "TOCANDO" no display
     MOV A, #'T'
     LCALL sendCharacter
     MOV A, #'O'
@@ -111,42 +106,49 @@ alarme_ativado:
     MOV A, #'O'
     LCALL sendCharacter
 
-   
-    SETB LED                  
-  		MOV R7, #20            
-    DELAY_20SEC:
-        MOV R6, #20       
-        DELAY_LOOP:
-            LCALL delay    
-            DJNZ R6, DELAY_LOOP
-        DJNZ R7, DELAY_20SEC
-		               
+    ; Ativa o LED do alarme
+    SETB LED
 
-    LCALL clearDisplay
-    RET
+    ; Aguarda o botão * para desativar o alarme
+AGUARDA_BOTAO:
+    CALL SCAN_TECLADO             ; Chama a sub-rotina para escanear o teclado
+    JNB P0.6, DESATIVA_ALARME     ; Se * foi pressionado, desativa alarme (no caso "Key 2" do teclado)
+    SJMP AGUARDA_BOTAO            ; Continua aguardando o botão * ser pressionado
 
-; Inicialização do display LCD
+DESATIVA_ALARME:
+    CLR LED                       ; Desativa o LED do alarme
+    LCALL clearDisplay            ; Limpa o display para remover "TOCANDO"
+    RET                           ; Retorna ao loop principal
+
+; --- Escaneamento do Teclado para Detectar Tecla * ---
+SCAN_TECLADO:
+    CLR P0.0                     ; Define Row0 para escanear linha da tecla *
+    NOP                          ; Delay
+    RET                          ; Retorno                     
+
+
+; --- Funções de Controle do LCD ---
+
+    
 lcd_init:
-	CLR RS		               ; clear RS - indica que instruções estão sendo enviadas
-
-	; Function set - modo 4 bits
-	CLR P1.7		            
+	CLR RS		          	; Configura RS para indicar instruções
+	CLR P1.7			; Define bits de dados	            
 	CLR P1.6		            
 	SETB P1.5		            
 	CLR P1.4		            
 
-	SETB EN		                
+	SETB EN		  		; Pulsa Enable para enviar instrução              
 	CLR EN		                
-	LCALL delay		            
+	LCALL delay			; Chama delay para completar a operação            
 
 	SETB EN		                
 	CLR EN		                
 
-	SETB P1.7		            
+	SETB P1.7			; Define modo 4 bits	            
 
 	SETB EN		                
 	CLR EN		                
-	LCALL delay		            
+	LCALL delay			; Delay para estabilização	            
 
 	; Entry mode set - incrementa sem shift
 	CLR P1.7		            
@@ -185,8 +187,8 @@ lcd_init:
 
 ; Envio de caracteres para o display
 sendCharacter:
-	SETB RS  		            
-	MOV C, ACC.7		        
+	SETB RS  			; Configura RS para indicar dados		            
+	MOV C, ACC.7			; Configura bits de dados com ACC	        
 	MOV P1.7, C		            
 	MOV C, ACC.6		        
 	MOV P1.6, C		            
