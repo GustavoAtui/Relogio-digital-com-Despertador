@@ -35,6 +35,10 @@ Projeto em Assembly executado no Edsim51. O projeto consiste em fazer um Relógi
 ##### Vídeo demonstrando o funcionamento do botão que desliga o despertador, o botão escolhido foi o asterisco ou "*":
 [Vídeo de demonstração](https://github.com/user-attachments/assets/15c1b3b3-c06d-461b-b486-c2a70f13f9ba)
 
+#### Esquema de funcionamento do teclado do Edsim51
+![image](https://github.com/user-attachments/assets/73136469-dbe3-4b46-822a-31225a002f3a)
+
+
 
 
 
