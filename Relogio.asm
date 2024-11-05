@@ -120,7 +120,7 @@ DESATIVA_ALARME:
     LCALL clearDisplay            ; Limpa o display para remover "TOCANDO"
     RET                           ; Retorna ao loop principal
 
-; --- Escaneamento do Teclado para Detectar Tecla * ---
+; --- Scan do teclado do Edsim51 tecla asterisco  ---
 SCAN_TECLADO:
     CLR P0.0                     ; Define Row0 para escanear linha da tecla *
     NOP                          ; Delay
